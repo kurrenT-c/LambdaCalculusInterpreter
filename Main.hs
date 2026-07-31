@@ -1,6 +1,6 @@
 module Main where
 
-import REPL
+import ReadingUserinput
 
 main :: IO ()
 main = repl

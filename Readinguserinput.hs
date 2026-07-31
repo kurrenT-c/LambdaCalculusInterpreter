@@ -1,4 +1,4 @@
-module REPL where
+module ReadingUserinput where
 
 import SyntaxTree
 import Parser
@@ -9,7 +9,7 @@ repl = loop NormalOrder
   where
     loop strat = do
       putStr "λ> "
-      line <- getLine
+      line <- getLines
       case line of
         ":q" -> putStrLn "bye"
         ":cbv" -> putStrLn "call-by-value" >> loop CallByValue
