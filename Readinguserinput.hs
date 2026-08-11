@@ -12,7 +12,6 @@ repl = do
   loop NormalOrder
   where
     loop strat = do
-      putStr "λ> "
       line <- getLine
       case line of
         ":q" -> putStrLn "bye"
