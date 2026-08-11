@@ -1,3 +1,4 @@
+module SyntaxTree where
 data Expr
   = Var String
   | Lam String Expr
