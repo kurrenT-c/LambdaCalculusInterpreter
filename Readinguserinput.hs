@@ -3,9 +3,13 @@ module ReadingUserinput where
 import SyntaxTree
 import Parser
 import Eval
+import System.IO
 
 repl :: IO ()
-repl = loop NormalOrder
+repl = do
+  hSetEncoding stdout utf8
+  hSetEncoding stdin utf8
+  loop NormalOrder
   where
     loop strat = do
       putStr "λ> "
