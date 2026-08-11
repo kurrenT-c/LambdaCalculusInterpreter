@@ -10,8 +10,12 @@ freeVars (Lam x e)   = S.delete x (freeVars e)
 freeVars (App f a)   = freeVars f `S.union` freeVars a
 
 fresh :: String -> Set String -> String
-fresh x used =
-  head $ filter (`S.notMember` used) (x : [x ++ show n | n <- [1..]])
+fresh x used = go (x : [x ++ show n | n <- [1..]])
+  where
+    go (c:cs)
+      | c `S.notMember` used = c
+      | otherwise            = go cs
+    go [] = error "fresh: impossible - infinite candidate list exhausted"
 
 subst :: String -> Expr -> Expr -> Expr
 subst x n (Var y)
