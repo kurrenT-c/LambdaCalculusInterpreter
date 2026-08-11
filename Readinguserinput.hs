@@ -9,7 +9,7 @@ repl = loop NormalOrder
   where
     loop strat = do
       putStr "λ> "
-      line <- getLines
+      line <- getLine
       case line of
         ":q" -> putStrLn "bye"
         ":cbv" -> putStrLn "call-by-value" >> loop CallByValue
