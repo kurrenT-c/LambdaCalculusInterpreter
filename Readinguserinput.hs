@@ -32,7 +32,7 @@ loadPrelude = foldr add Map.empty preludeSource
   where
     add (name, src) env = case parseExpr src of
       Right e -> Map.insert name e env
-      Left _  -> env  -- skip anything that fails to parse
+      Left _  -> env  
  
 
 resolve :: Env -> Expr -> Expr
@@ -60,7 +60,7 @@ repl = do
   loop NormalOrder loadPrelude
   where
     loop strat env = do
-      putStr "lambda> "
+      putStr "ʎ> "
       hFlush stdout
       line <- getLine
       case line of
