@@ -11,16 +11,19 @@ lexeme p = p <* spaces
 symbol :: Char -> Parser Char
 symbol c = lexeme (char c)
 
+identChar :: Parser Char
+identChar = alphaNum <|> char '_' <|> char '\''
+
 variable :: Parser Expr
-variable = lexeme (Var <$> many1 letter)
+variable = lexeme (Var <$> many1 identChar)
 
 lambda :: Parser Expr
 lambda = do
   _ <- lexeme (char '\\' <|> char 'λ')
-  v <- lexeme (many1 letter)
+  vs <- many1 (lexeme (many1 identChar))
   _ <- symbol '.'
   body <- expr
-  return (Lam v body)
+  return (foldr Lam body vs)
 
 atom :: Parser Expr
 atom = lambda
