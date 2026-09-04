@@ -60,7 +60,7 @@ repl = do
   loop NormalOrder loadPrelude
   where
     loop strat env = do
-      putStr "ʎ> "
+      putStr "input> "
       hFlush stdout
       line <- getLine
       case line of
