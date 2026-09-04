@@ -32,7 +32,7 @@ loadPrelude = foldr add Map.empty preludeSource
   where
     add (name, src) env = case parseExpr src of
       Right e -> Map.insert name e env
-      Left _  -> env
+      Left _  -> env  -- skip anything that fails to parse
  
 
 resolve :: Env -> Expr -> Expr
@@ -44,6 +44,15 @@ resolve env = go (500 :: Int)
         []      -> e
         (v : _) -> go (n - 1) (subst v (env Map.! v) e)
  
+
+traceReduction :: Strategy -> Int -> Expr -> [Expr]
+traceReduction strat limit e0 = e0 : go limit e0
+  where
+    go 0 _   = []
+    go n cur = case step strat cur of
+      Nothing  -> []
+      Just cur' -> cur' : go (n - 1) cur'
+ 
 repl :: IO ()
 repl = do
   hSetEncoding stdout utf8
@@ -51,6 +60,8 @@ repl = do
   loop NormalOrder loadPrelude
   where
     loop strat env = do
+      putStr "lambda> "
+      hFlush stdout
       line <- getLine
       case line of
         ":q" -> putStrLn "bye"
@@ -69,6 +80,12 @@ repl = do
                       putStrLn (name' ++ " defined")
                       loop strat (Map.insert name' e env)
                 _ -> putStrLn "usage: :let name = expr" >> loop strat env
+          | ":trace " `isPrefixOf` line ->
+              case parseExpr (drop 7 line) of
+                Left err -> print err >> loop strat env
+                Right e  -> do
+                  mapM_ print (traceReduction strat 500 (resolve env e))
+                  loop strat env
         _ ->
           case parseExpr line of
             Left err -> print err >> loop strat env
