@@ -1,5 +1,5 @@
 module ReadingUserinput where
- 
+
 import SyntaxTree
 import Parser
 import Eval
@@ -9,7 +9,8 @@ import Data.Map.Strict (Map)
 import qualified Data.Set as S
 import Data.List (isPrefixOf)
 import System.IO
- 
+import NativeEval (nativeNormalize)
+
 type Env = Map String Expr
 
 preludeSource :: [(String, String)]
@@ -26,14 +27,14 @@ preludeSource =
   , ("plus",  "\\m n f x. m f (n f x)")
   , ("mult",  "\\m n f. m (n f)")
   ]
- 
+
 loadPrelude :: Env
 loadPrelude = foldr add Map.empty preludeSource
   where
     add (name, src) env = case parseExpr src of
       Right e -> Map.insert name e env
-      Left _  -> env  
- 
+      Left _  -> env
+
 
 resolve :: Env -> Expr -> Expr
 resolve env = go (500 :: Int)
@@ -43,7 +44,7 @@ resolve env = go (500 :: Int)
       case [v | v <- S.toList (freeVars e), Map.member v env] of
         []      -> e
         (v : _) -> go (n - 1) (subst v (env Map.! v) e)
- 
+
 
 traceReduction :: Strategy -> Int -> Expr -> [Expr]
 traceReduction strat limit e0 = e0 : go limit e0
@@ -52,7 +53,7 @@ traceReduction strat limit e0 = e0 : go limit e0
     go n cur = case step strat cur of
       Nothing  -> []
       Just cur' -> cur' : go (n - 1) cur'
- 
+
 repl :: IO ()
 repl = do
   hSetEncoding stdout utf8
@@ -60,7 +61,7 @@ repl = do
   loop NormalOrder loadPrelude
   where
     loop strat env = do
-      putStr "input> "
+      putStr "lambda> "
       hFlush stdout
       line <- getLine
       case line of
@@ -86,10 +87,17 @@ repl = do
                 Right e  -> do
                   mapM_ print (traceReduction strat 500 (resolve env e))
                   loop strat env
+          | ":native " `isPrefixOf` line ->
+              case parseExpr (drop 8 line) of
+                Left err -> print err >> loop strat env
+                Right e  -> do
+                  result <- nativeNormalize (show (resolve env e)) 500
+                  putStrLn result
+                  loop strat env
         _ ->
           case parseExpr line of
             Left err -> print err >> loop strat env
             Right e  -> print (eval strat 500 (resolve env e)) >> loop strat env
- 
+
     trim = f . f
       where f = reverse . dropWhile (== ' ')
